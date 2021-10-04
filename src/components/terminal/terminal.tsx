@@ -7,8 +7,9 @@ import { EmulatorState, OutputFactory, Outputs } from 'javascript-terminal';
 import ReactTerminal from 'react-terminal-component';
 // @ts-ignore
 import { ReactOutputRenderers, ReactThemes } from 'react-terminal-component';
+import { DocumentReplica } from 'yorkie-js-sdk';
 
-export default function Terminal() {
+export default function Terminal(props: { doc: DocumentReplica }) {
   const defaultState = EmulatorState.createEmpty();
   const defaultOutputs = defaultState.getOutputs();
 
