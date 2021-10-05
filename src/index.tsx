@@ -7,18 +7,24 @@ import yorkie from 'yorkie-js-sdk';
 
 const init = async () => {
   const client = yorkie.createClient('http://localhost:8080', {
-    metadata: { name: 'scott' },
+    metadata: { username: 'scott' },
+    syncLoopDuration: 50,
+    reconnectStreamDelay: 1000,
   });
   await client.activate();
+
   const doc = yorkie.createDocument('test-collection', 'doc');
   await client.attach(doc);
   doc.update((root) => {
-    root.createText('code');
+    if (!root.code) {
+      root.createText('code');
+    }
   });
+  await client.sync();
 
   ReactDOM.render(
     <React.StrictMode>
-      <App doc={doc} />
+      <App doc={doc} client={client} />
     </React.StrictMode>,
     document.getElementById('root')
   );

@@ -16,7 +16,7 @@ import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/rubyblue.css';
 import 'codemirror/theme/xq-light.css';
 
-import { DocumentReplica } from 'yorkie-js-sdk';
+import { Client, DocumentReplica } from 'yorkie-js-sdk';
 
 const option = {
   mode: 'ruby',
@@ -31,9 +31,12 @@ const option = {
 
 const initText = `# 안녕하세요`;
 
-export default function Editor(props: { doc: DocumentReplica }) {
-  props.doc.subscribe((event) => {
-    console.log(event);
+export default function Editor(props: {
+  client: Client;
+  doc: DocumentReplica;
+}) {
+  props.client.subscribe((event) => {
+    console.log('event----', event);
   });
 
   return (
