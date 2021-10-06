@@ -7,12 +7,13 @@ import { EmulatorState, OutputFactory, Outputs } from 'javascript-terminal';
 import ReactTerminal from 'react-terminal-component';
 // @ts-ignore
 import { ReactThemes } from 'react-terminal-component';
-import { Client, DocEvent, DocumentReplica } from 'yorkie-js-sdk';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
-export default function Terminal(props: {
-  client: Client;
-  doc: DocumentReplica;
-}) {
+export default function Terminal() {
+  const doc = useSelector((state: RootState) => state.yorkie.doc)!;
+  const client = useSelector((state: RootState) => state.yorkie.client)!;
+
   const defaultState = EmulatorState.createEmpty();
   const defaultOutputs = defaultState.getOutputs();
 
@@ -23,7 +24,7 @@ export default function Terminal(props: {
   const emulatorState = defaultState.setOutputs(newOutputs);
   const [log, setLog] = useState(emulatorState);
 
-  const root = props.doc.getRoot();
+  const root = doc.getRoot();
   root.log.onChanges((changes: any) => {
     changes.forEach((change: any) => {
       if (change.content) {

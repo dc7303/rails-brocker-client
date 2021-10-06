@@ -16,7 +16,8 @@ import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/rubyblue.css';
 import 'codemirror/theme/xq-light.css';
 
-import { Client, DocumentReplica } from 'yorkie-js-sdk';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
 
 const option = {
   mode: 'ruby',
@@ -29,25 +30,46 @@ const option = {
   keyMap: 'sublime',
 };
 
-const initText = `# 안녕하세요`;
-
-export default function Editor(props: {
-  client: Client;
-  doc: DocumentReplica;
-}) {
-  props.client.subscribe((event) => {
-    console.log('event----', event);
-  });
+export default function Editor() {
+  const doc = useSelector((state: RootState) => state.yorkie.doc)!;
+  const client = useSelector((state: RootState) => state.yorkie.client)!;
 
   return (
     <CodeMirror
-      value={initText}
       options={option}
       editorDidMount={(editor: codemirror.Editor) => {
         editor.focus();
+
+        client.sync();
+
+        const root = doc.getRoot();
+        root.code.onChanges((changes: any) => {
+          changes.forEach((change: any) => {
+            const { actor, from, to } = change;
+            if (change.type === 'content') {
+              const content = change.content || '';
+
+              if (actor !== client.getID()) {
+                const fromPos = editor.posFromIndex(from);
+                const toPos = editor.posFromIndex(to);
+                editor.replaceRange(content, fromPos, toPos, 'yorkie');
+              }
+            }
+          });
+        });
       }}
-      onBeforeChange={(editor, data, value) => {}}
-      onChange={(editor, data, value) => {}}
+      onBeforeChange={(
+        editor: codemirror.Editor,
+        change: codemirror.EditorChange
+      ) => {
+        const from = editor.indexFromPos(change.from);
+        const to = editor.indexFromPos(change.to);
+        const content = change.text.join('\n');
+
+        doc.update((root) => {
+          root.code.edit(from, to, content);
+        });
+      }}
     />
   );
 }
