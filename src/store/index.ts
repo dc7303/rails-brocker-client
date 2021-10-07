@@ -7,6 +7,10 @@ export const store = configureStore({
   },
   middleware: getDefaultMiddleware({
     serializableCheck: {
+      ignoredActions: ['doc/attach/fulfilled', 'doc/activate/fulfilled'],
+      ignoredPaths: ['yorkie.client', 'yorkie.doc'],
+    },
+    immutableCheck: {
       ignoredPaths: ['yorkie.client', 'yorkie.doc'],
     },
   }),

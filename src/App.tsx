@@ -22,14 +22,14 @@ function App() {
     return () => {
       dispatch(deactivateClient());
     };
-  });
+  }, []);
 
   useEffect(() => {
     dispatch(createDocument());
     return () => {
       dispatch(detachDocument());
     };
-  });
+  }, []);
 
   useEffect(() => {
     async function attachDocAsync() {
@@ -42,9 +42,11 @@ function App() {
     attachDocAsync();
   }, [client, doc]);
 
+  console.log(client, doc);
   if (!client || !doc) {
     return <div>loading......................</div>;
   }
+
   return (
     <div>
       <Main />

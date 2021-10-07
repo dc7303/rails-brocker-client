@@ -39,7 +39,6 @@ export default function Editor() {
       options={option}
       editorDidMount={(editor: codemirror.Editor) => {
         editor.focus();
-
         client.sync();
 
         const root = doc.getRoot();
@@ -67,6 +66,9 @@ export default function Editor() {
         const content = change.text.join('\n');
 
         doc.update((root) => {
+          if (!root.code) {
+            root.createText('code');
+          }
           root.code.edit(from, to, content);
         });
       }}

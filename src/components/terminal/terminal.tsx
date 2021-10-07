@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'styled-components';
 import 'javascript-terminal';
 // @ts-ignore
@@ -14,30 +14,48 @@ export default function Terminal() {
   const doc = useSelector((state: RootState) => state.yorkie.doc)!;
   const client = useSelector((state: RootState) => state.yorkie.client)!;
 
-  const defaultState = EmulatorState.createEmpty();
-  const defaultOutputs = defaultState.getOutputs();
-
-  const newOutputs = Outputs.addRecord(
-    defaultOutputs,
-    OutputFactory.makeTextOutput('terminal is read-only.')
-  );
-  const emulatorState = defaultState.setOutputs(newOutputs);
+  let emulatorState = EmulatorState.createEmpty();
   const [log, setLog] = useState(emulatorState);
+  const [activateSubscriber, setActivateSubscriber] = useState(false);
 
-  const root = doc.getRoot();
-  root.log.onChanges((changes: any) => {
-    changes.forEach((change: any) => {
-      if (change.content) {
-        const newOutputs = Outputs.addRecord(
-          log.getOutputs(),
-          OutputFactory.makeTextOutput(change.content)
-        );
-
-        setLog(emulatorState.setOutputs(newOutputs));
+  useEffect(() => {
+    client.sync();
+    doc.subscribe(() => {
+      const root = doc.getRoot();
+      if (!root?.log || activateSubscriber) {
+        return;
       }
-    });
-  });
+      const text = root.log.getValue();
+      if (text) {
+        const newOutputs = Outputs.addRecord(
+          emulatorState.getOutputs(),
+          OutputFactory.makeTextOutput(text)
+        );
+        setLog((l: any) => {
+          const newState = l.setOutputs(newOutputs);
+          emulatorState = newState;
+          return newState;
+        });
+      }
 
+      root.log.onChanges((changes: any) => {
+        changes.forEach((change: any) => {
+          if (change.content) {
+            const newOutputs = Outputs.addRecord(
+              emulatorState.getOutputs(),
+              OutputFactory.makeTextOutput(change.content)
+            );
+            setLog((l: any) => {
+              const newState = l.setOutputs(newOutputs);
+              emulatorState = newState;
+              return newState;
+            });
+          }
+        });
+      });
+      setActivateSubscriber(() => true);
+    });
+  }, []);
   return (
     <div>
       <ReactTerminal
@@ -45,6 +63,9 @@ export default function Terminal() {
         emulatorState={log}
         acceptInput={false}
         autoFocus={false}
+        onSatateChange={(emulatorState: any) => {
+          console.log('------------', emulatorState.getOutputs());
+        }}
       />
     </div>
   );

@@ -20,7 +20,7 @@ export const activateClient = createAsyncThunk<
 >('doc/activate', async (_: undefined, thunkApi) => {
   try {
     const { name } = anonymous.generate();
-    const client = yorkie.createClient('localhost:8080', {
+    const client = yorkie.createClient('http://localhost:8080', {
       metadata: {
         username: name,
       },
@@ -41,11 +41,11 @@ export const attachDoc = createAsyncThunk<
   try {
     await client.attach(doc);
 
-    doc.update((root) => {
-      if (!root.code) {
-        root.createText('code');
-      }
-    });
+    // doc.update((root) => {
+    //   if (!root.code) {
+    //     root.createText('code');
+    //   }
+    // });
     await client.sync();
     return { doc, client };
   } catch (err: any) {
@@ -70,6 +70,15 @@ export const yorkieSlice = createSlice({
       state.doc = undefined;
       client?.detach(doc as DocumentReplica);
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(activateClient.fulfilled, (state, { payload }) => {
+      state.client = payload.client;
+    });
+    builder.addCase(attachDoc.fulfilled, (state, { payload }) => {
+      state.doc = payload.doc;
+      state.client = payload.client;
+    });
   },
 });
 
