@@ -19,7 +19,6 @@ export default function Terminal() {
   const [activateSubscriber, setActivateSubscriber] = useState(false);
 
   useEffect(() => {
-    client.sync();
     doc.subscribe(() => {
       const root = doc.getRoot();
       if (!root?.log || activateSubscriber) {
@@ -63,9 +62,6 @@ export default function Terminal() {
         emulatorState={log}
         acceptInput={false}
         autoFocus={false}
-        onSatateChange={(emulatorState: any) => {
-          console.log('------------', emulatorState.getOutputs());
-        }}
       />
     </div>
   );

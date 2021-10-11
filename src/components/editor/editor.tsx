@@ -34,14 +34,17 @@ export default function Editor() {
   const doc = useSelector((state: RootState) => state.yorkie.doc)!;
   const client = useSelector((state: RootState) => state.yorkie.client)!;
 
+  if (!client || !doc) {
+    return null;
+  }
+
   return (
     <CodeMirror
       options={option}
       editorDidMount={(editor: codemirror.Editor) => {
         editor.focus();
-        client.sync();
-
         const root = doc.getRoot();
+
         root.code.onChanges((changes: any) => {
           changes.forEach((change: any) => {
             const { actor, from, to } = change;
@@ -56,20 +59,24 @@ export default function Editor() {
             }
           });
         });
+        editor.setValue(root.code.getValue());
       }}
       onBeforeChange={(
         editor: codemirror.Editor,
         change: codemirror.EditorChange
       ) => {
+        if (change.origin === 'yorkie' || change.origin === 'setValue') {
+          return;
+        }
+
         const from = editor.indexFromPos(change.from);
         const to = editor.indexFromPos(change.to);
         const content = change.text.join('\n');
 
         doc.update((root) => {
-          if (!root.code) {
-            root.createText('code');
+          if (root?.code) {
+            root.code.edit(from, to, content);
           }
-          root.code.edit(from, to, content);
         });
       }}
     />

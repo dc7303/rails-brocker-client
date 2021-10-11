@@ -9,9 +9,12 @@ type AttachDocResult = { doc: DocumentReplica; client: Client };
 export interface YorkieState {
   doc?: DocumentReplica;
   client?: Client;
+  loading: boolean;
 }
 
-const initialState: YorkieState = {};
+const initialState: YorkieState = {
+  loading: true,
+};
 
 export const activateClient = createAsyncThunk<
   ActivateClientResult,
@@ -41,11 +44,11 @@ export const attachDoc = createAsyncThunk<
   try {
     await client.attach(doc);
 
-    // doc.update((root) => {
-    //   if (!root.code) {
-    //     root.createText('code');
-    //   }
-    // });
+    doc.update(root => {
+      if (!root.code) {
+        root.createText('code');
+      }
+    });
     await client.sync();
     return { doc, client };
   } catch (err: any) {
@@ -65,6 +68,9 @@ export const yorkieSlice = createSlice({
     createDocument(state) {
       state.doc = yorkie.createDocument('test-collection', 'doc');
     },
+    attachDocLoading(state, action: PayloadAction<boolean>) {
+      state.loading = action.payload;
+    },
     detachDocument(state) {
       const { doc, client } = state;
       state.doc = undefined;
@@ -82,6 +88,6 @@ export const yorkieSlice = createSlice({
   },
 });
 
-export const { deactivateClient, createDocument, detachDocument } =
+export const { deactivateClient, createDocument, detachDocument, attachDocLoading } =
   yorkieSlice.actions;
 export default yorkieSlice.reducer;

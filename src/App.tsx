@@ -5,6 +5,7 @@ import './App.css';
 import {
   activateClient,
   attachDoc,
+  attachDocLoading,
   createDocument,
   deactivateClient,
   detachDocument,
@@ -15,6 +16,7 @@ import { RootState } from './store';
 function App() {
   const client = useSelector((state: RootState) => state.yorkie.client);
   const doc = useSelector((state: RootState) => state.yorkie.doc);
+  const loading = useSelector((state: RootState) => state.yorkie.loading);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -37,13 +39,18 @@ function App() {
         return;
       }
 
+      dispatch(attachDocLoading(true));
       await dispatch(attachDoc({ client, doc }));
+      dispatch(attachDocLoading(false));
     }
+
     attachDocAsync();
+    return () => {
+      dispatch(attachDocLoading(true));
+    };
   }, [client, doc]);
 
-  console.log(client, doc);
-  if (!client || !doc) {
+  if (loading || !client || !doc) {
     return <div>loading......................</div>;
   }
 
