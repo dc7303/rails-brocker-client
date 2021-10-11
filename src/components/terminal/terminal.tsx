@@ -19,41 +19,39 @@ export default function Terminal() {
   const [activateSubscriber, setActivateSubscriber] = useState(false);
 
   useEffect(() => {
-    doc.subscribe(() => {
-      const root = doc.getRoot();
-      if (!root?.log || activateSubscriber) {
-        return;
-      }
-      const text = root.log.getValue();
-      if (text) {
-        const newOutputs = Outputs.addRecord(
-          emulatorState.getOutputs(),
-          OutputFactory.makeTextOutput(text)
-        );
-        setLog((l: any) => {
-          const newState = l.setOutputs(newOutputs);
-          emulatorState = newState;
-          return newState;
-        });
-      }
-
-      root.log.onChanges((changes: any) => {
-        changes.forEach((change: any) => {
-          if (change.content) {
-            const newOutputs = Outputs.addRecord(
-              emulatorState.getOutputs(),
-              OutputFactory.makeTextOutput(change.content)
-            );
-            setLog((l: any) => {
-              const newState = l.setOutputs(newOutputs);
-              emulatorState = newState;
-              return newState;
-            });
-          }
-        });
+    const root = doc.getRoot();
+    if (!root?.log || activateSubscriber) {
+      return;
+    }
+    const text = root.log.getValue();
+    if (text) {
+      const newOutputs = Outputs.addRecord(
+        emulatorState.getOutputs(),
+        OutputFactory.makeTextOutput(text)
+      );
+      setLog((l: any) => {
+        const newState = l.setOutputs(newOutputs);
+        emulatorState = newState;
+        return newState;
       });
-      setActivateSubscriber(() => true);
+    }
+
+    root.log.onChanges((changes: any) => {
+      changes.forEach((change: any) => {
+        if (change.content) {
+          const newOutputs = Outputs.addRecord(
+            emulatorState.getOutputs(),
+            OutputFactory.makeTextOutput(change.content)
+          );
+          setLog((l: any) => {
+            const newState = l.setOutputs(newOutputs);
+            emulatorState = newState;
+            return newState;
+          });
+        }
+      });
     });
+    setActivateSubscriber(() => true);
   }, []);
   return (
     <div>

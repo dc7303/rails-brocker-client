@@ -15,9 +15,11 @@ import 'codemirror/keymap/vim';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/rubyblue.css';
 import 'codemirror/theme/xq-light.css';
+import 'axios';
 
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 const option = {
   mode: 'ruby',
@@ -39,46 +41,65 @@ export default function Editor() {
   }
 
   return (
-    <CodeMirror
-      options={option}
-      editorDidMount={(editor: codemirror.Editor) => {
-        editor.focus();
-        const root = doc.getRoot();
+    <div>
+      <button
+        onClick={() => {
+          const headers = {
+            'Content-Type': 'application/json',
+          };
 
-        root.code.onChanges((changes: any) => {
-          changes.forEach((change: any) => {
-            const { actor, from, to } = change;
-            if (change.type === 'content') {
-              const content = change.content || '';
+          const payload = {
+            code: doc.getRoot().code.getValue(),
+          };
+          axios
+            .post('http://localhost:10000', payload, { headers })
+            .then(console.log)
+            .catch(console.error);
+        }}
+      >
+        Run code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      </button>
+      <CodeMirror
+        options={option}
+        editorDidMount={(editor: codemirror.Editor) => {
+          editor.focus();
+          const root = doc.getRoot();
 
-              if (actor !== client.getID()) {
-                const fromPos = editor.posFromIndex(from);
-                const toPos = editor.posFromIndex(to);
-                editor.replaceRange(content, fromPos, toPos, 'yorkie');
+          root.code.onChanges((changes: any) => {
+            changes.forEach((change: any) => {
+              const { actor, from, to } = change;
+              if (change.type === 'content') {
+                const content = change.content || '';
+
+                if (actor !== client.getID()) {
+                  const fromPos = editor.posFromIndex(from);
+                  const toPos = editor.posFromIndex(to);
+                  editor.replaceRange(content, fromPos, toPos, 'yorkie');
+                }
               }
+            });
+          });
+          editor.setValue(root.code.getValue());
+        }}
+        onBeforeChange={(
+          editor: codemirror.Editor,
+          change: codemirror.EditorChange
+        ) => {
+          if (change.origin === 'yorkie' || change.origin === 'setValue') {
+            return;
+          }
+
+          const from = editor.indexFromPos(change.from);
+          const to = editor.indexFromPos(change.to);
+          const content = change.text.join('\n');
+
+          doc.update((root) => {
+            if (root?.code) {
+              root.code.edit(from, to, content);
             }
           });
-        });
-        editor.setValue(root.code.getValue());
-      }}
-      onBeforeChange={(
-        editor: codemirror.Editor,
-        change: codemirror.EditorChange
-      ) => {
-        if (change.origin === 'yorkie' || change.origin === 'setValue') {
-          return;
-        }
-
-        const from = editor.indexFromPos(change.from);
-        const to = editor.indexFromPos(change.to);
-        const content = change.text.join('\n');
-
-        doc.update((root) => {
-          if (root?.code) {
-            root.code.edit(from, to, content);
-          }
-        });
-      }}
-    />
+        }}
+      />
+    </div>
   );
 }

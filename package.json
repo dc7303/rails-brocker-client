@@ -12,6 +12,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "anonymous-animals-gen": "^1.0.3",
+    "axios": "^0.22.0",
     "codemirror": "^5.63.1",
     "javascript-terminal": "^1.1.1",
     "react": "^17.0.2",
