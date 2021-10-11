@@ -9,8 +9,8 @@ import 'codemirror/addon/comment/comment';
 import 'codemirror/mode/ruby/ruby';
 
 import 'codemirror/keymap/sublime';
-import 'codemirror/keymap/emacs';
 import 'codemirror/keymap/vim';
+import 'codemirror/keymap/emacs';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/rubyblue.css';
@@ -18,23 +18,18 @@ import 'codemirror/theme/xq-light.css';
 import 'axios';
 
 import { RootState } from '../../store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-
-const option = {
-  mode: 'ruby',
-  theme: 'rubyblue',
-  tabSize: 2,
-  lineNumbers: true,
-  lineWrapping: true,
-  autoCloseTags: true,
-  autoCloseBrackets: true,
-  keyMap: 'sublime',
-};
+import { changeCodeKeyMap, EditorKeyMap } from '../../features/yorkieSlice';
 
 export default function Editor() {
   const doc = useSelector((state: RootState) => state.yorkie.doc)!;
   const client = useSelector((state: RootState) => state.yorkie.client)!;
+  const editorKeyMap = useSelector(
+    (state: RootState) => state.yorkie.editorKeyMap
+  );
+
+  const dispatch = useDispatch();
 
   if (!client || !doc) {
     return null;
@@ -42,25 +37,52 @@ export default function Editor() {
 
   return (
     <div>
-      <button
-        onClick={() => {
-          const headers = {
-            'Content-Type': 'application/json',
-          };
+      <div>
+        <span style={{ fontSize: '25px' }}>Editor mode:</span>
+        <select
+          style={{ fontSize: '25px' }}
+          value={editorKeyMap}
+          onChange={(event: any) => {
+            dispatch(changeCodeKeyMap(event.target.value));
+          }}
+        >
+          <option value={EditorKeyMap.Sublime}>sublime</option>
+          <option value={EditorKeyMap.Vim}>vim</option>
+          <option value={EditorKeyMap.Emacs}>emacs</option>
+        </select>
+      </div>
+      <div>
+        <span style={{ fontSize: '25px' }}>Code runner:</span>
+        <button
+          style={{ fontSize: '25px' }}
+          onClick={() => {
+            const headers = {
+              'Content-Type': 'application/json',
+            };
 
-          const payload = {
-            code: doc.getRoot().code.getValue(),
-          };
-          axios
-            .post('http://localhost:10000', payload, { headers })
-            .then(console.log)
-            .catch(console.error);
-        }}
-      >
-        Run code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      </button>
+            const payload = {
+              code: doc.getRoot().code.getValue(),
+            };
+            axios
+              .post('http://localhost:10000', payload, { headers })
+              .then(console.log)
+              .catch(console.error);
+          }}
+        >
+          Click me!
+        </button>
+      </div>
       <CodeMirror
-        options={option}
+        options={{
+          mode: 'ruby',
+          theme: 'rubyblue',
+          tabSize: 2,
+          lineNumbers: true,
+          lineWrapping: true,
+          autoCloseTags: true,
+          autoCloseBrackets: true,
+          keyMap: editorKeyMap,
+        }}
         editorDidMount={(editor: codemirror.Editor) => {
           editor.focus();
           const root = doc.getRoot();

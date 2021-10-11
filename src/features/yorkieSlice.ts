@@ -6,14 +6,21 @@ type ActivateClientResult = { client: Client };
 type AttachDocArgs = { doc: DocumentReplica; client: Client };
 type AttachDocResult = { doc: DocumentReplica; client: Client };
 
+export enum EditorKeyMap {
+  Sublime = 'sublime',
+  Vim = 'vim',
+  Emacs = 'emacs',
+}
 export interface YorkieState {
   doc?: DocumentReplica;
   client?: Client;
   loading: boolean;
+  editorKeyMap: EditorKeyMap;
 }
 
 const initialState: YorkieState = {
   loading: true,
+  editorKeyMap: EditorKeyMap.Sublime
 };
 
 export const activateClient = createAsyncThunk<
@@ -76,6 +83,9 @@ export const yorkieSlice = createSlice({
       state.doc = undefined;
       client?.detach(doc as DocumentReplica);
     },
+    changeCodeKeyMap(state, action: PayloadAction<EditorKeyMap>) {
+      state.editorKeyMap = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(activateClient.fulfilled, (state, { payload }) => {
@@ -88,6 +98,11 @@ export const yorkieSlice = createSlice({
   },
 });
 
-export const { deactivateClient, createDocument, detachDocument, attachDocLoading } =
-  yorkieSlice.actions;
+export const { 
+  deactivateClient,
+  createDocument,
+  detachDocument,
+  attachDocLoading,
+  changeCodeKeyMap
+} = yorkieSlice.actions;
 export default yorkieSlice.reducer;
